@@ -9,6 +9,7 @@ import authConfig from 'src/auth/config/auth.config';
 import { citySchema } from 'src/city/city.model';
 import { CityModule } from 'src/city/city.module';
 import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
+import { CommonModule } from 'src/common/common.module';
 import { FileConsumer } from './file-consumer';
 import { FileProducerService } from './file-producer.service';
 import { RestaurantController } from './restaurant.controller';
@@ -48,6 +49,7 @@ import { RestaurantService } from './restaurant.service';
     CityModule,
     CloudinaryModule,
     AuthModule,
+    CommonModule,
   ],
   controllers: [RestaurantController],
   providers: [RestaurantService, FileProducerService, FileConsumer],

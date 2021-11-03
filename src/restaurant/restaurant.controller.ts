@@ -16,8 +16,10 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
-import { User } from 'src/auth/auth.model';
-import { GetUser } from 'src/common/decorators/admin.decorator';
+import { Role } from 'src/auth/auth.model';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { JwtGuard } from 'src/common/guards/jwt.guard';
+import { RolesGuard } from 'src/common/guards/roles.guard';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
 import { RestaurantService } from './restaurant.service';
@@ -42,23 +44,23 @@ export class RestaurantController {
     return this.restaurantService.getById(restaurantID);
   }
 
+  @Roles(Role.Admin)
+  @UseGuards(JwtGuard, RolesGuard)
   @Post()
-  @UseGuards(AuthGuard())
   @UseInterceptors(FileInterceptor('image'))
   async createRestaurant(
-    @GetUser() user: User,
     @UploadedFile() image: Express.Multer.File,
     @Body() createRestaurantDto: CreateRestaurantDto,
   ) {
     return this.restaurantService.createRestaurant(createRestaurantDto, image);
   }
 
+  @Roles(Role.Admin)
+  @UseGuards(JwtGuard, RolesGuard)
   @Patch(':restaurantID')
-  @UseGuards(AuthGuard())
   @UseInterceptors(FileInterceptor('image'))
   @HttpCode(HttpStatus.OK)
   updateRestaurant(
-    @GetUser() user: User,
     @UploadedFile() image: Express.Multer.File,
     @Param('restaurantID') restaurantID: string,
     @Body() updateRestaurantDto: UpdateRestaurantDto,
@@ -70,13 +72,11 @@ export class RestaurantController {
     );
   }
 
+  @Roles(Role.Admin)
+  @UseGuards(JwtGuard, RolesGuard)
   @Delete(':restaurantID')
-  @UseGuards(AuthGuard())
   @HttpCode(HttpStatus.NO_CONTENT)
-  deleteRestaurant(
-    @GetUser() user: User,
-    @Param('restaurantID') restaurantID: string,
-  ) {
+  deleteRestaurant(@Param('restaurantID') restaurantID: string) {
     return this.restaurantService.deleteRestaurant(restaurantID);
   }
 }
