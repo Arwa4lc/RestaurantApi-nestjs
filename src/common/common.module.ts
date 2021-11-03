@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
-// import { ApiKeyGuard } from './guards/api-key.guard';
+import { JwtGuard } from './guards/jwt.guard';
+import { RolesGuard } from './guards/roles.guard';
 
 @Module({
   imports: [ConfigModule],
-  //   providers: [{ provide: APP_GUARD, useClass: ApiKeyGuard }],
+  providers: [JwtGuard, RolesGuard],
 })
 export class CommonModule {}
