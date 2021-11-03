@@ -10,10 +10,11 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
-import { User } from 'src/auth/auth.model';
-import { GetUser } from 'src/common/decorators/admin.decorator';
+import { Role } from 'src/auth/auth.model';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { JwtGuard } from 'src/common/guards/jwt.guard';
+import { RolesGuard } from 'src/common/guards/roles.guard';
 import { CityService } from './city.service';
 import { CreateCityDto } from './dto/create-city.dto';
 import { UpdateCityDto } from './dto/update-city.dto';
@@ -33,27 +34,29 @@ export class CityController {
     return this.cityService.getById(cityId);
   }
 
+  @Roles(Role.Admin)
+  @UseGuards(JwtGuard, RolesGuard)
   @Post()
-  @UseGuards(AuthGuard())
-  createCity(@GetUser() user: User, @Body() createCityDto: CreateCityDto) {
+  createCity(@Body() createCityDto: CreateCityDto) {
     return this.cityService.createCity(createCityDto);
   }
 
+  @Roles(Role.Admin)
+  @UseGuards(JwtGuard, RolesGuard)
   @Patch(':cityId')
-  @UseGuards(AuthGuard())
   @HttpCode(HttpStatus.OK)
   updateCity(
-    @GetUser() user: User,
     @Param('cityId') cityId: string,
     @Body() updateCityDto: UpdateCityDto,
   ) {
     return this.cityService.updateCity(cityId, updateCityDto);
   }
 
+  @Roles(Role.Admin)
+  @UseGuards(JwtGuard, RolesGuard)
   @Delete(':cityId')
-  @UseGuards(AuthGuard())
   @HttpCode(HttpStatus.NO_CONTENT)
-  deleteCity(@GetUser() user: User, @Param('cityId') cityId: string) {
+  deleteCity(@Param('cityId') cityId: string) {
     return this.cityService.deleteCity(cityId);
   }
 }
