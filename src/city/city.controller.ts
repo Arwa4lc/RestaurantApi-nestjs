@@ -10,7 +10,16 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Role } from 'src/auth/auth.model';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { JwtGuard } from 'src/common/guards/jwt.guard';
@@ -24,16 +33,22 @@ import { UpdateCityDto } from './dto/update-city.dto';
 export class CityController {
   constructor(private readonly cityService: CityService) {}
 
+  @ApiOkResponse({ description: 'Success' })
   @Get()
   getAll() {
     return this.cityService.getAll();
   }
 
+  @ApiOkResponse({ description: 'Success' })
+  @ApiNotFoundResponse({ description: 'City not found' })
   @Get(':cityId')
   getById(@Param('cityId') cityId: string) {
     return this.cityService.getById(cityId);
   }
 
+  @ApiBearerAuth()
+  @ApiCreatedResponse({ description: 'Document created' })
+  @ApiBadRequestResponse({ description: 'BadRequest: something went wrong' })
   @Roles(Role.Admin)
   @UseGuards(JwtGuard, RolesGuard)
   @Post()
@@ -41,6 +56,9 @@ export class CityController {
     return this.cityService.createCity(createCityDto);
   }
 
+  @ApiBearerAuth()
+  @ApiOkResponse({ description: 'Document updated' })
+  @ApiNotFoundResponse({ description: 'City not found' })
   @Roles(Role.Admin)
   @UseGuards(JwtGuard, RolesGuard)
   @Patch(':cityId')
@@ -52,6 +70,9 @@ export class CityController {
     return this.cityService.updateCity(cityId, updateCityDto);
   }
 
+  @ApiBearerAuth()
+  @ApiNoContentResponse({ description: 'No content' })
+  @ApiNotFoundResponse({ description: 'City not found' })
   @Roles(Role.Admin)
   @UseGuards(JwtGuard, RolesGuard)
   @Delete(':cityId')
