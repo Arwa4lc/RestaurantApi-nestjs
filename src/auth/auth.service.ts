@@ -33,7 +33,6 @@ export class AuthService {
     }
 
     try {
-      delete signUpDto.role;
       signUpDto.password = await bcrypt.hash(signUpDto.password, 12);
       user = await this.User.create(signUpDto);
 

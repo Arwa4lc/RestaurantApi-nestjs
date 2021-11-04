@@ -1,5 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
-import { Role } from '../auth.model';
+import { IsEmail, IsString } from 'class-validator';
 
 export class SignUpDto {
   @IsString()
@@ -11,7 +10,4 @@ export class SignUpDto {
 
   @IsString()
   password: string;
-
-  @IsNotEmpty()
-  role: Role;
 }
