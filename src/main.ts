@@ -9,6 +9,13 @@ async function bootstrap() {
     .setTitle('Restaurants')
     .setDescription('Restaurants Management application')
     .setVersion('1.0')
+    .addBearerAuth({
+      type: 'http',
+      name: 'authorization',
+      scheme: 'bearer',
+      in: 'header',
+      bearerFormat: 'Bearer',
+    })
     .build();
 
   const document = SwaggerModule.createDocument(app, options);
