@@ -37,6 +37,14 @@ export const restaurantSchema = new mongoose.Schema({
   },
 });
 
+restaurantSchema.set('toJSON', {
+  transform(doc, ret, options) {
+    ret.id = ret._id;
+    delete ret._id;
+    delete ret.__v;
+  },
+});
+
 restaurantSchema.index({ location: '2dsphere' });
 
 export interface Restaurant extends mongoose.Document {
