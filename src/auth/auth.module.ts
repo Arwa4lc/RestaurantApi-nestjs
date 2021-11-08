@@ -10,6 +10,8 @@ import { AuthService } from './auth.service';
 import authConfig from './config/auth.config';
 import { JwtStrategy } from './jwt-strategy';
 import * as bcrypt from 'bcrypt';
+import { LocalStrategy } from './local-strategy';
+import { IsDuplicatedConstraint } from 'src/common/decorators/IsDuplicated';
 
 @Module({
   imports: [
@@ -27,29 +29,27 @@ import * as bcrypt from 'bcrypt';
     ConfigModule.forFeature(authConfig),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
-  exports: [JwtStrategy, PassportModule],
+  providers: [AuthService, JwtStrategy, LocalStrategy, IsDuplicatedConstraint],
+  exports: [JwtStrategy, LocalStrategy],
 })
 export class AuthModule {
-  constructor(
-    @InjectModel('User') private readonly User: Model<User>,
-    private configService: ConfigService,
-  ) {
-    this.createAdmin();
-  }
-
-  async createAdmin() {
-    let admin = await this.User.findOne({ role: 'admin' });
-    if (admin) {
-      return console.log('Admin found');
-    }
-
-    admin = await this.User.create({
-      name: 'Arwa abdelrahem',
-      email: this.configService.get('USER_EMAIL'),
-      password: await bcrypt.hash(this.configService.get('USER_PASSWORD'), 12),
-      role: 'admin',
-    });
-    return console.log('Admin created');
-  }
+  // constructor(
+  //   @InjectModel('User') private readonly User: Model<User>,
+  //   private configService: ConfigService,
+  // ) {
+  //   // this.createAdmin();
+  // }
+  // async createAdmin() {
+  //   let admin = await this.User.findOne({ role: 'admin' });
+  //   if (admin) {
+  //     return console.log('Admin found');
+  //   }
+  //   admin = await this.User.create({
+  //     name: 'Arwa abdelrahem',
+  //     email: this.configService.get('USER_EMAIL'),
+  //     password: await bcrypt.hash(this.configService.get('USER_PASSWORD'), 12),
+  //     role: 'admin',
+  //   });
+  //   return console.log('Admin created');
+  // }
 }

@@ -1,17 +1,17 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User } from './auth.model';
 import { SignUpDto } from './dto/sign-up.dto';
 import * as bcrypt from 'bcrypt';
 import { SignInDto } from './dto/sign-in.dto';
 import { JwtPayload } from './jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
+import { User } from './auth.model';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel('User') private readonly User: Model<User>,
+    @InjectModel('User') private readonly user: Model<User>,
     private jwtService: JwtService,
   ) {}
 
@@ -27,23 +27,27 @@ export class AuthService {
   }
 
   async signUp(signUpDto: SignUpDto) {
-    let user = await this.User.findOne({ email: signUpDto.email });
-    if (user) {
-      throw new BadRequestException('User with the same email already found');
-    }
+    signUpDto.password = await bcrypt.hash(signUpDto.password, 12);
 
-    try {
-      signUpDto.password = await bcrypt.hash(signUpDto.password, 12);
-      user = await this.User.create(signUpDto);
+    let user = await this.user.create(signUpDto);
+    const token = this.generateToken(user);
 
+    return { token, user };
+  }
+
+  async validateUser(email: string, password: string) {
+    const user = await this.user.findOne({ email });
+    const compare = await bcrypt.compare(password, user.password);
+
+    if (user && compare) {
       return user;
-    } catch (error) {
-      throw new BadRequestException(error.message);
     }
+
+    return null;
   }
 
   async signIn(signInDto: SignInDto) {
-    const user = await this.User.findOne({ email: signInDto.email });
+    const user = await this.user.findOne({ email: signInDto.email });
     if (!user) {
       throw new BadRequestException('Invalid email or password');
     }
