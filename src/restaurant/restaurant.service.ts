@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -11,6 +12,7 @@ import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
 import { FileProducerService } from './file-producer.service';
 import { Restaurant } from './restaurant.model';
+import * as mongoose from 'mongoose';
 
 @Injectable()
 export class RestaurantService {
@@ -91,6 +93,9 @@ export class RestaurantService {
           },
         },
       ]);
+      if (!restaurant || restaurant.length === 0) {
+        throw new NotFoundException('No results found');
+      }
 
       return restaurant;
     } catch (error) {
@@ -102,9 +107,21 @@ export class RestaurantService {
     createRestaurantDto: CreateRestaurantDto,
     image: Express.Multer.File,
   ) {
+    const isValidId = mongoose.Types.ObjectId.isValid(createRestaurantDto.city);
+    if (!isValidId) {
+      throw new BadRequestException('cityId must be valid Id');
+    }
+
     const city = await this.City.findById(createRestaurantDto.city);
     if (!city) {
       throw new NotFoundException('City with the given ID not found');
+    }
+
+    const restaurantWithEmail = await this.Restaurant.findOne({
+      email: createRestaurantDto.email,
+    });
+    if (restaurantWithEmail) {
+      throw new ConflictException('Document with the same email exists');
     }
 
     let img;
@@ -114,7 +131,7 @@ export class RestaurantService {
     }
 
     try {
-      let restaurant = await this.Restaurant.create({
+      const restaurant = await this.Restaurant.create({
         ...createRestaurantDto,
         location: {
           coordinates: [
@@ -137,8 +154,18 @@ export class RestaurantService {
     image: Express.Multer.File,
   ) {
     let restaurant = await this.Restaurant.findById(restaurantID);
+    // console.log(restaurant);
+
     if (!restaurant) {
       throw new NotFoundException('Restaurant with the given ID not found');
+    }
+
+    delete updateRestaurantDto.city;
+    const restaurantWIthEmail = await this.Restaurant.findOne({
+      email: updateRestaurantDto?.email,
+    });
+    if (restaurantWIthEmail) {
+      throw new ConflictException('email in use');
     }
 
     let img;
@@ -147,16 +174,20 @@ export class RestaurantService {
       updateRestaurantDto.image = img.image;
     }
 
+    console.log(updateRestaurantDto?.longitude);
+    console.log(updateRestaurantDto?.latitude);
+
     try {
       await restaurant
         .set({
           ...updateRestaurantDto,
           location: {
+            // type: updateRestaurantDto?.type,
             coordinates: [
-              updateRestaurantDto.longitude
+              updateRestaurantDto?.longitude
                 ? updateRestaurantDto.longitude
                 : restaurant.location.coordinates[0],
-              updateRestaurantDto.latitude
+              updateRestaurantDto?.latitude
                 ? updateRestaurantDto.latitude
                 : restaurant.location.coordinates[1],
             ],
